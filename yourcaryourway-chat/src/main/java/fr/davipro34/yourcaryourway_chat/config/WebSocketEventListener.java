@@ -16,20 +16,24 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
+    // Injection de la dépendance pour envoyer des messages
     private final SimpMessageSendingOperations messagingTemplate;
 
+    // Méthode pour gérer les événements de déconnexion WebSocket
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        // Récupération des en-têtes STOMP de l'événement
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        // Récupération du nom d'utilisateur à partir des attributs de session
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         if (username != null) {
             log.info("user disconnected: {}", username);
-            // Create a new chat message of type LEAVE
+            // Création d'un nouveau message de chat de type LEAVE
             var chatMessage = ChatMessage.builder()
                     .type(MessageType.LEAVE)
                     .sender(username)
                     .build();
-            // Send the message to all subscribers of the topic "/topic/public"
+            // Envoi du message à tous les abonnés du topic "/topic/public"
             messagingTemplate.convertAndSend("/topic/public", chatMessage);
         }
     }
