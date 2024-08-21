@@ -1,0 +1,174 @@
+/* Applique un box-sizing global */
+* {
+    box-sizing: border-box;
+}
+
+/* Style de base pour le document */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.58;
+    color: #333;
+    background-color: #f4f4f4; /* Gris clair pour le fond */
+}
+
+/* Correction pour les flottants */
+.clearfix:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* Cache les éléments avec la classe .hidden */
+.hidden {
+    display: none;
+}
+
+/* Style des formulaires */
+.form-control {
+    width: 100%;
+    min-height: 38px;
+    font-size: 15px;
+    border: 1px solid #c8c8c8;
+    padding-left: 10px;
+    outline: none;
+    border-radius: 4px;
+}
+
+/* Groupe de formulaire */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Style des titres */
+h1, h2 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+h1 {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+/* Style des boutons */
+button {
+    padding: 0.6rem 1rem;
+    font-size: 14px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button.primary {
+    background-color: #007BFF; /* Bleu sobre */
+    color: white;
+}
+
+button.primary:hover {
+    background-color: #0056b3; /* Bleu foncé au survol */
+}
+
+button.accent {
+    background-color: #6c757d; /* Gris foncé pour accentuer */
+    color: white;
+}
+
+button.accent:hover {
+    background-color: #5a6268; /* Gris un peu plus foncé au survol */
+}
+
+/* Mise en page des pages utilisateur et chat */
+#username-page {
+text-align: center;
+display: flex;
+align-items: center;
+justify-content: center;
+height: 100vh;
+}
+
+.username-page-container {
+    background: #fff;
+    box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
+    border-radius: 6px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Chat */
+#chat-page {
+height: 100%;
+background-color: #ffffff;
+}
+
+.chat-container {
+    max-width: 700px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
+    border-radius: 6px;
+    margin-top: 30px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 60px);
+}
+
+/* Style pour les messages */
+#messageArea {
+list-style-type: none;
+padding: 0;
+margin: 0;
+flex-grow: 1;
+overflow-y: auto;
+padding: 20px;
+border-bottom: 1px solid #ececec;
+}
+
+#messageArea li {
+padding: 10px;
+margin-bottom: 10px;
+background-color: #f8f9fa;
+border-radius: 6px;
+word-wrap: break-word;
+}
+
+#messageArea .chat-message i {
+background-color: #007bff; /* Couleur d'avatar bleu */
+color: white;
+}
+
+/* Header du chat */
+.chat-header {
+    padding: 15px;
+    background-color: #007BFF; /* Bleu pour le header */
+    color: white;
+    text-align: center;
+    border-radius: 6px 6px 0 0;
+}
+
+/* Zone de connexion */
+.connecting {
+    padding-top: 5px;
+    text-align: center;
+    color: #777;
+}
+
+/* Media Queries pour réactivité */
+@media screen and (max-width: 480px) {
+    .username-page-container,
+    .chat-container {
+        padding: 20px;
+    }
+}
