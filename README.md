@@ -35,17 +35,34 @@ This PoC is designed to showcase the core functionality of the chat system witho
 
 ### Prerequisites
 
-- Java and Maven installed for the backend.
+- Java 21 or higher
+- Maven 3.9.4 or higher
+
+### Setup and Installation
+1. Clone the repository
+```bash
+git clone https://github.com/davipro34/YourCarYourWay_Chat.git
+```
+```bash
+cd YourCarYourWay_Chat
+```
+
+2. Build the project
+
+```bash
+mvn clean install
+```
 
 ### Running the application
 
-Navigate to the `back` directory and run the following commands:
+1. Run the following commands:
 
 ```bash
-cd back
-mvn clean install
 mvn spring-boot:run
 ```
+
+2. Access the application:  
+Open your web browser and navigate to http://localhost:8080. Enter a username to join the chat room.
 
 ## License
 
