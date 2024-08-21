@@ -1,155 +1,130 @@
 'use strict';
 
-// Sélection des éléments HTML que nous allons manipuler
-var usernamePage = document.querySelector('#username-page');
-var chatPage = document.querySelector('#chat-page');
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-var connectingElement = document.querySelector('.connecting');
+// Début du script - Strict mode activé
+// Ce script gère la logique de la page de chat WebSocket
 
-// Variables pour gérer la connexion et les messages
-var stompClient = null; // Client STOMP pour gérer les WebSockets
-var username = null;    // Nom d'utilisateur de la personne connectée
 
-// Tableau de couleurs pour les avatars (chacune sera assignée en fonction de l'utilisateur)
-var colors = ['#FF5733', '#C70039', '#900C3F', '#581845', '#28B463', '#1F618D', '#F1C40F', '#E67E22'];
+// Variables for HTML elements and form inputs
+// Sélection des éléments HTML clés
+const usernamePage = document.querySelector('#username-page');
+const chatPage = document.querySelector('#chat-page');
+const usernameForm = document.querySelector('#usernameForm');
+const messageForm = document.querySelector('#messageForm');
+const messageInput = document.querySelector('#message');
+const messageArea = document.querySelector('#messageArea');
+const connectingElement = document.querySelector('.connecting');
 
-/**
- * Fonction qui est appelée lorsque l'utilisateur soumet son nom d'utilisateur.
- * Elle établit la connexion WebSocket.
- */
+let stompClient = null;
+let username = null;
+
+const colors = [
+    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
+    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
+];
+
+// Function to connect to WebSocket server
 function connect(event) {
-    username = document.querySelector('#name').value.trim(); // Récupère et nettoie le nom d'utilisateur
+    username = document.querySelector('#name').value.trim();
 
     if (username) {
-        // Cache la page de demande de nom d'utilisateur et affiche la page du chat
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
-        // Connexion via WebSocket avec SockJS
-        var socket = new SockJS('/ws');
+        // Create a SockJS instance and STOMP client
+        const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
-        // Connexion au serveur WebSocket
+        // Connect to the WebSocket server
         stompClient.connect({}, onConnected, onError);
     }
-    event.preventDefault(); // Empêche la soumission du formulaire de recharger la page
+    event.preventDefault();
 }
 
-/**
- * Fonction appelée lorsque la connexion est établie avec succès.
- * Elle abonne l'utilisateur au topic public pour recevoir les messages.
- */
+// Callback function when connected to the WebSocket server
 function onConnected() {
-    // S'abonne au canal public pour recevoir les messages
+    // Subscribe to the public topic
     stompClient.subscribe('/topic/public', onMessageReceived);
 
-    // Notifie le serveur qu'un nouvel utilisateur a rejoint le chat
+    // Send the username to the server
     stompClient.send("/app/chat.addUser",
         {},
-        JSON.stringify({sender: username, type: 'JOIN'})
-    );
+        JSON.stringify({ sender: username, type: 'JOIN' })
+    )
 
-    // Cache l'indicateur de connexion en cours
     connectingElement.classList.add('hidden');
 }
 
-/**
- * Fonction appelée en cas d'erreur lors de la connexion WebSocket.
- * Elle affiche un message d'erreur à l'utilisateur.
- */
+// Callback function when there's an error connecting to the WebSocket server
 function onError(error) {
-    connectingElement.textContent = 'Impossible de se connecter au serveur. Veuillez réessayer plus tard.';
-    connectingElement.style.color = 'red'; // Le texte devient rouge pour signaler l'erreur
+    connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
+    connectingElement.style.color = 'red';
 }
 
-/**
- * Fonction appelée lorsque l'utilisateur envoie un message.
- * Elle envoie le message au serveur via WebSocket.
- */
+// Function to send a message to the WebSocket server
 function sendMessage(event) {
-    var messageContent = messageInput.value.trim(); // Récupère le texte du message
+    const messageContent = messageInput.value.trim();
 
     if (messageContent && stompClient) {
-        // Crée un objet contenant les informations du message
-        var chatMessage = {
-            sender: username, // Le nom de l'expéditeur (l'utilisateur actuel)
-            content: messageContent, // Le texte du message
-            type: 'CHAT' // Type de message (ici un message de chat normal)
+        const chatMessage = {
+            sender: username,
+            content: messageInput.value,
+            type: 'CHAT'
         };
-
-        // Envoie le message au serveur
+        // Send the message to the server
         stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
-        messageInput.value = ''; // Réinitialise le champ de texte après envoi
+        messageInput.value = '';
     }
-    event.preventDefault(); // Empêche le rechargement de la page
+    event.preventDefault();
 }
 
-/**
- * Fonction appelée lorsqu'un message est reçu.
- * Elle affiche le message dans la liste des messages.
- */
+// Callback function when a message is received from the server
 function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body); // Analyse le message reçu au format JSON
+    const message = JSON.parse(payload.body);
 
-    // Crée un nouvel élément de liste pour afficher le message
-    var messageElement = document.createElement('li');
+    const messageElement = document.createElement('li');
 
-    // Différencie les types de messages : JOIN, LEAVE ou CHAT
     if (message.type === 'JOIN') {
-        messageElement.classList.add('event-message'); // Style différent pour les messages d'événement
-        message.content = message.sender + ' a rejoint le chat !'; // Message informant de l'arrivée d'un utilisateur
+        messageElement.classList.add('event-message');
+        message.content = message.sender + ' joined!';
     } else if (message.type === 'LEAVE') {
         messageElement.classList.add('event-message');
-        message.content = message.sender + ' a quitté le chat !'; // Message informant du départ d'un utilisateur
+        message.content = message.sender + ' left!';
     } else {
-        messageElement.classList.add('chat-message'); // Style pour un message normal
+        messageElement.classList.add('chat-message');
 
-        // Crée un avatar pour l'utilisateur à partir de la première lettre de son nom
-        var avatarElement = document.createElement('i');
-        var avatarText = document.createTextNode(message.sender[0]);
+        const avatarElement = document.createElement('i');
+        const avatarText = document.createTextNode(message.sender[0]);
         avatarElement.appendChild(avatarText);
-        avatarElement.style['background-color'] = getAvatarColor(message.sender); // Assigne une couleur aléatoire à l'avatar
+        avatarElement.style['background-color'] = getAvatarColor(message.sender);
 
         messageElement.appendChild(avatarElement);
 
-        // Ajoute le nom d'utilisateur à côté de l'avatar
-        var usernameElement = document.createElement('span');
-        var usernameText = document.createTextNode(message.sender);
+        const usernameElement = document.createElement('span');
+        const usernameText = document.createTextNode(message.sender);
         usernameElement.appendChild(usernameText);
         messageElement.appendChild(usernameElement);
     }
 
-    // Ajoute le contenu du message sous le nom d'utilisateur
-    var textElement = document.createElement('p');
-    var messageText = document.createTextNode(message.content);
+    const textElement = document.createElement('p');
+    const messageText = document.createTextNode(message.content);
     textElement.appendChild(messageText);
 
     messageElement.appendChild(textElement);
 
-    // Ajoute le message dans la zone de messages
     messageArea.appendChild(messageElement);
-    messageArea.scrollTop = messageArea.scrollHeight; // Fait défiler vers le bas pour afficher le dernier message
+    messageArea.scrollTop = messageArea.scrollHeight;
 }
 
-/**
- * Fonction qui génère une couleur en fonction du nom de l'utilisateur.
- * Cela permet de garder la même couleur pour chaque utilisateur.
- */
+// Function to get a color for the user's avatar based on their username
 function getAvatarColor(messageSender) {
-    var hash = 0;
-    // Génère un hash à partir du nom de l'utilisateur
-    for (var i = 0; i < messageSender.length; i++) {
+    let hash = 0;
+    for (let i = 0; i < messageSender.length; i++) {
         hash = 31 * hash + messageSender.charCodeAt(i);
     }
-    // Calcule un index basé sur le hash pour sélectionner une couleur dans le tableau
-    var index = Math.abs(hash % colors.length);
-    return colors[index]; // Retourne la couleur sélectionnée
+    const index = Math.abs(hash % colors.length);
+    return colors[index];
 }
 
-// Écoute l'envoi du formulaire du nom d'utilisateur et appelle la fonction connect
+// Event listeners for the forms
 usernameForm.addEventListener('submit', connect, true);
-// Écoute l'envoi du formulaire de message et appelle la fonction sendMessage
 messageForm.addEventListener('submit', sendMessage, true);
